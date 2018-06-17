@@ -1,0 +1,10 @@
+#ifndef BEHAVIORS_H
+#define BEHAVIORS_H
+
+#define CHEMOTAXIS_LEN 8
+#define NOSE_TOUCH_LEN 8
+
+extern const uint16_t NOSE_TOUCH[];
+extern const uint16_t CHEMOTAXIS[];
+
+#endif

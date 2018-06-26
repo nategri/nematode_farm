@@ -86,31 +86,48 @@ int main(int argc, char* argv[]) {
 
     // Check 
     if(SDL_PollEvent(&sdl_event)) {
-      if(sdl_event.type == SDL_KEYDOWN) {
-          if(sdl_event.key.keysym.sym == SDLK_ESCAPE) {
+      if(sdl_event.type == SDL_KEYDOWN || sdl_event.type == SDL_KEYUP) {
+          const uint8_t* kb_state = SDL_GetKeyboardState(NULL);
+          if(kb_state[SDL_SCANCODE_ESCAPE]) {
             break;
           }
 
-          if((sdl_event.key.keysym.sym == SDLK_UP) && (sdl_event.key.keysym.sym == SDLK_LEFT)) {
+          if(kb_state[SDL_SCANCODE_UP] && kb_state[SDL_SCANCODE_LEFT]) {
             player_left_muscle = 125;
-            player_right_muscle = 0;
+            player_right_muscle = 250;
           }
-          else if((sdl_event.key.keysym.sym == SDLK_UP) && (sdl_event.key.keysym.sym == SDLK_RIGHT)) {
-            player_left_muscle = 0;
+          else if(kb_state[SDL_SCANCODE_UP] && kb_state[SDL_SCANCODE_RIGHT]) {
+            player_left_muscle = 250;
             player_right_muscle = 125;
           }
-          else if(sdl_event.key.keysym.sym == SDLK_UP) {
+          else if(kb_state[SDL_SCANCODE_DOWN] && kb_state[SDL_SCANCODE_LEFT]) {
+            player_left_muscle = -125;
+            player_right_muscle = -250;
+          }
+          else if(kb_state[SDL_SCANCODE_DOWN] && kb_state[SDL_SCANCODE_RIGHT]) {
+            player_left_muscle = -250;
+            player_right_muscle = -125;
+          }
+          else if(kb_state[SDL_SCANCODE_UP]) {
             player_left_muscle = 250;
             player_right_muscle = 250;
           }
-          else if(sdl_event.key.keysym.sym == SDLK_DOWN) {
+          else if(kb_state[SDL_SCANCODE_DOWN]) {
             player_left_muscle = -250;
             player_right_muscle = -250;
           }
-      }
-      else {
-        player_left_muscle = 0;
-        player_right_muscle = 0;
+          else if(kb_state[SDL_SCANCODE_LEFT]) {
+            player_left_muscle = 0;
+            player_right_muscle = 125;
+          }
+          else if(kb_state[SDL_SCANCODE_RIGHT]) {
+            player_left_muscle = 125;
+            player_right_muscle = 0;
+          }
+          else {
+            player_left_muscle = 0;
+            player_right_muscle = 0;
+          }
       }
     }
 

@@ -33,8 +33,8 @@ int main(int argc, char* argv[]) {
   SDL_Surface* surf;
   SDL_Texture* worm_tex;
   SDL_Texture* worm_nose_tex;
-  SDL_Texture* worm_mark_tex;
-  SDL_Texture* worm_mark_nose_tex;
+  SDL_Texture* player_worm_tex;
+  SDL_Texture* player_worm_nose_tex;
 
   surf = SDL_LoadBMP("./img/worm.bmp");
   worm_tex = SDL_CreateTextureFromSurface(rend, surf);
@@ -45,11 +45,11 @@ int main(int argc, char* argv[]) {
   SDL_FreeSurface(surf);
 
   surf = SDL_LoadBMP("./img/worm_mark.bmp");
-  worm_mark_tex = SDL_CreateTextureFromSurface(rend, surf);
+  player_worm_tex = SDL_CreateTextureFromSurface(rend, surf);
   SDL_FreeSurface(surf);
 
   surf = SDL_LoadBMP("./img/worm_mark_nose.bmp");
-  worm_mark_nose_tex = SDL_CreateTextureFromSurface(rend, surf);
+  player_worm_nose_tex = SDL_CreateTextureFromSurface(rend, surf);
   SDL_FreeSurface(surf);
 
   // Texture for current state of the worm
@@ -63,32 +63,71 @@ int main(int argc, char* argv[]) {
   MotionComponentDisplay motion_component_display;
   motion_component_display_init(&motion_component_display);
 
-  // Create array of worms
+  // Create player worm
+  Worm* player_worm = malloc(sizeof(Worm));
+  player_worm_init(player_worm);
+
+  // Create array of non-player AI worms
   static const uint8_t num_worms = 25;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
-
   for(uint8_t n=0; n < num_worms; n++) {
     // Initialize worms
     worm_init(&worm_arr[n]);
   }
 
-
   // Begin graphical simulation
   SDL_Event sdl_event;
+
+  int player_left_muscle = 0;
+  int player_right_muscle = 0;
 
   // Main animation loop
   for(int i=0; 1; i++) {
 
-    // Check for keypress---quit if there is one
+    // Check 
     if(SDL_PollEvent(&sdl_event)) {
       if(sdl_event.type == SDL_KEYDOWN) {
-        break;
+          if(sdl_event.key.keysym.sym == SDLK_ESCAPE) {
+            break;
+          }
+
+          if((sdl_event.key.keysym.sym == SDLK_UP) && (sdl_event.key.keysym.sym == SDLK_LEFT)) {
+            player_left_muscle = 125;
+            player_right_muscle = 0;
+          }
+          else if((sdl_event.key.keysym.sym == SDLK_UP) && (sdl_event.key.keysym.sym == SDLK_RIGHT)) {
+            player_left_muscle = 0;
+            player_right_muscle = 125;
+          }
+          else if(sdl_event.key.keysym.sym == SDLK_UP) {
+            player_left_muscle = 250;
+            player_right_muscle = 250;
+          }
+          else if(sdl_event.key.keysym.sym == SDLK_DOWN) {
+            player_left_muscle = -250;
+            player_right_muscle = -250;
+          }
+      }
+      else {
+        player_left_muscle = 0;
+        player_right_muscle = 0;
       }
     }
 
     SDL_SetRenderDrawColor(rend, 128, 128, 128, 0);
     SDL_RenderClear(rend);
 
+    // Update player worm
+    player_worm_update(player_worm, player_left_muscle, player_right_muscle);
+    worm_phys_state_update(player_worm);
+    curr_tex = player_worm_tex;
+    sprite_update(player_worm);
+    collide_with_wall(player_worm);
+    collide_with_worm(player_worm, num_worms+1, worm_arr, num_worms);
+    SDL_RenderCopyEx(rend, curr_tex, NULL, &(player_worm->sprite_rect), player_worm->sprite.theta, NULL, SDL_FLIP_NONE);
+    SDL_RenderDrawRect(rend, &(player_worm->sprite_rect));
+
+    // Update worm AIs
     for(uint8_t n=0; n<num_worms; n++) {
       if(i % 120 == 0) {
         if(worm_arr[n].nose_touching) {
@@ -101,21 +140,11 @@ int main(int argc, char* argv[]) {
       worm_phys_state_update(&worm_arr[n]);
 
       // Set what graphic to to use
-      if(n == 0) {
-        if(worm_arr[n].nose_touching) {
-          curr_tex = worm_mark_nose_tex;
-        }
-        else {
-          curr_tex = worm_mark_tex;
-        }
+      if(worm_arr[n].nose_touching) {
+        curr_tex = worm_nose_tex;
       }
       else {
-        if(worm_arr[n].nose_touching) {
-          curr_tex = worm_nose_tex;
-        }
-        else {
-          curr_tex = worm_tex;
-        }
+        curr_tex = worm_tex;
       }
 
       sprite_update(&worm_arr[n]);

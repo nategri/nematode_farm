@@ -24,4 +24,7 @@ void worm_update(Worm* const, const uint16_t*, int);
 uint8_t collide_with_worm(Worm* const, uint8_t, Worm* const, const uint8_t);
 uint8_t collide_with_wall(Worm* const worm);
 
+void player_worm_init(Worm* const);
+void player_worm_update(Worm* const, int, int);
+
 #endif

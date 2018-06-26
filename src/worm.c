@@ -267,3 +267,26 @@ uint8_t collide_with_wall(Worm* const worm) {
     return 0;
   }
 }
+
+// Same as NPC worm except don't need some bio info
+// motion will occurr through direct muscle state manipulation
+void player_worm_init(Worm* const worm) {
+  uint32_t worm_x_init = (int)(0.5*WINDOW_X);
+  uint32_t worm_y_init = (int)(0.5*WINDOW_Y);
+  double worm_theta_init = 0.0;
+  worm->phys_state = (WormPhysicalState) {worm_x_init, worm_y_init, 0.0, 0.0, worm_theta_init};
+
+  worm->bio_state.muscle = (MuscleState) {0, 0, 0, 0, 0};
+  worm->sprite = (Sprite) {
+    (int)worm->phys_state.x,
+    (int)worm->phys_state.y,
+    SPRITE_W,
+    SPRITE_H,
+    worm->phys_state.theta,
+  };
+}
+
+void player_worm_update(Worm* const worm, int left, int right) {
+  worm->bio_state.muscle.left = left;
+  worm->bio_state.muscle.right = right;
+}

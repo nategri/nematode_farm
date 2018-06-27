@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
   player_worm_init(player_worm);
 
   // Create array of non-player AI worms
-  static const uint8_t num_worms = 25;
+  static const uint8_t num_worms = 1;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
   for(uint8_t n=0; n < num_worms; n++) {
     // Initialize worms
@@ -81,10 +81,13 @@ int main(int argc, char* argv[]) {
   int player_left_muscle = 0;
   int player_right_muscle = 0;
 
+  // Flag for visualization
+  uint8_t show_vis = 0;
+
   // Main animation loop
   for(int i=0; 1; i++) {
 
-    // Check 
+    // Check keyboard for input
     if(SDL_PollEvent(&sdl_event)) {
       if(sdl_event.type == SDL_KEYDOWN || sdl_event.type == SDL_KEYUP) {
           const uint8_t* kb_state = SDL_GetKeyboardState(NULL);
@@ -92,37 +95,42 @@ int main(int argc, char* argv[]) {
             break;
           }
 
+          static const uint16_t player_speed = 250;
+
           if(kb_state[SDL_SCANCODE_UP] && kb_state[SDL_SCANCODE_LEFT]) {
-            player_left_muscle = 125;
-            player_right_muscle = 250;
+            player_left_muscle = player_speed/2;
+            player_right_muscle = player_speed;
           }
           else if(kb_state[SDL_SCANCODE_UP] && kb_state[SDL_SCANCODE_RIGHT]) {
-            player_left_muscle = 250;
-            player_right_muscle = 125;
+            player_left_muscle = player_speed;
+            player_right_muscle = player_speed/2;
           }
           else if(kb_state[SDL_SCANCODE_DOWN] && kb_state[SDL_SCANCODE_LEFT]) {
-            player_left_muscle = -125;
-            player_right_muscle = -250;
+            player_left_muscle = -player_speed/2;
+            player_right_muscle = -player_speed;
           }
           else if(kb_state[SDL_SCANCODE_DOWN] && kb_state[SDL_SCANCODE_RIGHT]) {
-            player_left_muscle = -250;
-            player_right_muscle = -125;
+            player_left_muscle = -player_speed;
+            player_right_muscle = -player_speed/2;
           }
           else if(kb_state[SDL_SCANCODE_UP]) {
-            player_left_muscle = 250;
-            player_right_muscle = 250;
+            player_left_muscle = player_speed;
+            player_right_muscle = player_speed;
           }
           else if(kb_state[SDL_SCANCODE_DOWN]) {
-            player_left_muscle = -250;
-            player_right_muscle = -250;
+            player_left_muscle = -player_speed;
+            player_right_muscle = -player_speed;
           }
           else if(kb_state[SDL_SCANCODE_LEFT]) {
             player_left_muscle = 0;
-            player_right_muscle = 125;
+            player_right_muscle = player_speed/2;
           }
           else if(kb_state[SDL_SCANCODE_RIGHT]) {
-            player_left_muscle = 125;
+            player_left_muscle = player_speed/2;
             player_right_muscle = 0;
+          }
+          else if(kb_state[SDL_SCANCODE_V]) {
+            show_vis = !show_vis;
           }
           else {
             player_left_muscle = 0;
@@ -137,10 +145,10 @@ int main(int argc, char* argv[]) {
     // Update player worm
     player_worm_update(player_worm, player_left_muscle, player_right_muscle);
     worm_phys_state_update(player_worm);
-    curr_tex = player_worm_tex;
+    curr_tex = player_worm_nose_tex;
     sprite_update(player_worm);
     collide_with_wall(player_worm);
-    collide_with_worm(player_worm, num_worms+1, worm_arr, num_worms);
+    collide_with_worm(player_worm, -1, worm_arr, num_worms);
     SDL_RenderCopyEx(rend, curr_tex, NULL, &(player_worm->sprite_rect), player_worm->sprite.theta, NULL, SDL_FLIP_NONE);
     SDL_RenderDrawRect(rend, &(player_worm->sprite_rect));
 
@@ -167,8 +175,14 @@ int main(int argc, char* argv[]) {
       sprite_update(&worm_arr[n]);
 
       worm_arr[n].nose_touching = 0;
+
+      // Collide with walls
       worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_wall(&worm_arr[n]);
+      // Collide with other AI worms
       worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_worm(&worm_arr[n], n, worm_arr, num_worms);
+      // Collide with player worm
+      Worm player_worm_arr[] = {*player_worm};
+      worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_worm(&worm_arr[n], -1, player_worm_arr, 1);
 
       sprite_update(&worm_arr[n]);
 
@@ -181,8 +195,10 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    motion_component_display_draw(rend, &motion_component_display);
-    muscle_display_draw(rend, &muscle_display);
+    if(show_vis) {
+      motion_component_display_draw(rend, &motion_component_display);
+      muscle_display_draw(rend, &muscle_display);
+    }
 
     if(i > 1000) {
       SDL_RenderPresent(rend);

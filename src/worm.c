@@ -18,7 +18,7 @@ void worm_init(Worm* const worm) {
     (int)worm->phys_state.y,
     SPRITE_W,
     SPRITE_H,
-    worm->phys_state.theta,
+    worm->phys_state.theta
   };
 
   // Burn in worm state
@@ -273,7 +273,7 @@ uint8_t collide_with_wall(Worm* const worm) {
 void player_worm_init(Worm* const worm) {
   uint32_t worm_x_init = (int)(0.5*WINDOW_X);
   uint32_t worm_y_init = (int)(0.5*WINDOW_Y);
-  double worm_theta_init = 0.0;
+  double worm_theta_init = -90.0;
   worm->phys_state = (WormPhysicalState) {worm_x_init, worm_y_init, 0.0, 0.0, worm_theta_init};
 
   worm->bio_state.muscle = (MuscleState) {0, 0, 0, 0, 0};
@@ -282,7 +282,7 @@ void player_worm_init(Worm* const worm) {
     (int)worm->phys_state.y,
     SPRITE_W,
     SPRITE_H,
-    worm->phys_state.theta,
+    worm->phys_state.theta+90.0
   };
 }
 

@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
   player_worm_init(player_worm);
 
   // Create array of non-player AI worms
-  static const uint8_t num_worms = 1;
+  static const uint8_t num_worms = 50;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
   for(uint8_t n=0; n < num_worms; n++) {
     // Initialize worms

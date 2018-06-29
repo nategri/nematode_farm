@@ -175,6 +175,9 @@ uint8_t collide_with_worm(Worm* const worm, uint8_t curr_index, Worm* const worm
   uint8_t nose_touching = 0;
   for(uint8_t i = 0; i < len; i++) {
 
+    const static int hitbox_w = SPRITE_W/2;
+    const static int hitbox_h = SPRITE_H/2;
+
     if(i != curr_index) {
       const uint16_t x_sep = abs(worm->sprite.x - worm_arr[i].sprite.x);
       const uint16_t y_sep = abs(worm->sprite.y - worm_arr[i].sprite.y);
@@ -184,15 +187,15 @@ uint8_t collide_with_worm(Worm* const worm, uint8_t curr_index, Worm* const worm
 
       // Decide whether nose is touching
       if( (dot(r, v) > 0) && (worm->bio_state.muscle.left > 0) && (worm->bio_state.muscle.right > 0) ) {
-        if( (x_sep < SPRITE_W+10) && (y_sep < SPRITE_H+10 )) {
+        if( (x_sep < hitbox_w+10) && (y_sep < hitbox_h+10 )) {
           nose_touching = 1;
         }
       }
 
       // Do the physics of the collision
-      if(x_sep <= SPRITE_W) {
-        if(y_sep <= SPRITE_H) {
-          if((abs(worm->sprite.x - worm_arr[i].sprite.x) > SPRITE_W-1)) { 
+      if(x_sep <= hitbox_w) {
+        if(y_sep <= hitbox_h) {
+          if((abs(worm->sprite.x - worm_arr[i].sprite.x) > hitbox_w-1)) { 
             // Approach from left
             if(worm->sprite.x < worm_arr[i].sprite.x) {
               worm->phys_state.x -= 1.0;
@@ -202,7 +205,7 @@ uint8_t collide_with_worm(Worm* const worm, uint8_t curr_index, Worm* const worm
               worm->phys_state.x += 1.0;
             }
           }
-          if(abs(worm->sprite.y - worm_arr[i].sprite.y) > SPRITE_H-1) {
+          if(abs(worm->sprite.y - worm_arr[i].sprite.y) > hitbox_h-1) {
 
             // Approach from (screen) top
             if(worm->sprite.y < worm_arr[i].sprite.y) {

@@ -9,13 +9,15 @@
 
 #include "SDL.h"
 
+#include "colors.h"
 #include "display.h"
 
 #include "behaviors.h"
 #include "worm.h"
+#include "trap.h"
 
-#include "muscle_display.h"
 #include "motion_component_display.h"
+#include "muscle_display.h"
 
 int main(int argc, char* argv[]) {
   // Seed RNG
@@ -68,12 +70,16 @@ int main(int argc, char* argv[]) {
   player_worm_init(player_worm);
 
   // Create array of non-player AI worms
-  static const uint8_t num_worms = 50;
+  static const uint8_t num_worms = 3;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
   for(uint8_t n=0; n < num_worms; n++) {
     // Initialize worms
     worm_init(&worm_arr[n]);
   }
+
+  // Create a worm trap
+  Trap* red_trap = malloc(sizeof(Trap));
+  trap_init(red_trap, RED, 320, 240, 120, 120);
 
   // Begin graphical simulation
   SDL_Event sdl_event;
@@ -142,6 +148,9 @@ int main(int argc, char* argv[]) {
     SDL_SetRenderDrawColor(rend, 128, 128, 128, 0);
     SDL_RenderClear(rend);
 
+    // Draw traps
+    trap_draw(rend, red_trap);
+
     // Update player worm
     player_worm_update(player_worm, player_left_muscle, player_right_muscle);
     worm_phys_state_update(player_worm);
@@ -175,6 +184,12 @@ int main(int argc, char* argv[]) {
       sprite_update(&worm_arr[n]);
 
       worm_arr[n].nose_touching = 0;
+
+      worm_update_trapped(&worm_arr[n], red_trap);
+      if(worm_arr[n].trapped && (worm_arr[n].color == RED)) {
+        // Collide with trap
+        worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], red_trap);
+      }
 
       // Collide with walls
       worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_wall(&worm_arr[n]);

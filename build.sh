@@ -1,4 +1,4 @@
-gcc -Wfatal-errors src/main.c -o nematode_farm \
+gcc -g -Wfatal-errors src/main.c -o nematode_farm \
   -I /usr/local/Cellar/sdl2/2.0.8/include/SDL2 \
   -I ./include \
   -I ./nanotode/include \
@@ -7,5 +7,6 @@ gcc -Wfatal-errors src/main.c -o nematode_farm \
   src/behaviors.c \
   src/muscle_display.c \
   src/motion_component_display.c \
+  src/trap.c \
   -L /usr/local/Cellar/sdl2/2.0.8/lib \
   -l SDL2-2.0.0

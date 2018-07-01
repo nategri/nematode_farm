@@ -20,6 +20,8 @@ void worm_init(Worm* const worm) {
     SPRITE_H,
     worm->phys_state.theta
   };
+  worm->trapped = 0;
+  worm->color = RED; // For now....
 
   // Burn in worm state
   int rand_int = (rand() % 1000) + 500;
@@ -262,7 +264,66 @@ uint8_t collide_with_wall(Worm* const worm) {
     collide = 1;
   }
 
-  // Remember, its won't touch if it's backing up
+  // Remember, its nose won't touch if it's backing up
+  if(collide && dot_prod < 0 && worm->bio_state.muscle.left > 0 && worm->bio_state.muscle.right > 0) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+// Update whether or not worm is trapped
+void worm_update_trapped(Worm* const worm, Trap* const trap) {
+  if(worm->color == trap->color) {
+    if((worm->phys_state.x < trap->right_edge) && (worm->phys_state.x > trap->left_edge)) {
+      if((worm->phys_state.y > trap->top_edge) && (worm->phys_state.y < trap->bottom_edge)) {
+        worm->trapped = 1;
+      }
+    }
+  }
+}
+
+// Handles effects on worm's physical state if it collides with
+// the wall of a 'trap'; returns true if its nose is touching a trap wall
+uint8_t collide_with_trap(Worm* const worm, Trap* const trap) {
+  // Define normal vectors
+  static const double nvec_bottom[] = {0.0, -1.0};
+  static const double nvec_top[] = {0.0, 1.0};
+  static const double nvec_right[] = {-1.0, 0.0};
+  static const double nvec_left[] = {1.0, 0.0};
+
+  double v[] = {worm->phys_state.vx, worm->phys_state.vy};
+  double dot_prod = 0;
+
+  uint8_t collide;
+
+  // Right
+  if(worm->phys_state.x > trap->right_edge - SPRITE_W/2) {
+    worm->phys_state.x = trap->right_edge - SPRITE_W/2;
+    dot_prod = dot(v, nvec_right);
+    collide = 1;
+  }
+  // Left
+  else if(worm->phys_state.x < trap->left_edge + SPRITE_W/2) {
+    worm->phys_state.x = trap->left_edge + SPRITE_W/2;
+    dot_prod = dot(v, nvec_left);
+    collide = 1;
+  }
+  // Bottom
+  if(worm->phys_state.y > trap->bottom_edge - SPRITE_H/2) {
+    worm->phys_state.y = trap->bottom_edge - SPRITE_H/2;
+    dot_prod = dot(v, nvec_bottom);
+    collide = 1;
+  }
+  // Top
+  else if(worm->phys_state.y < trap->top_edge + SPRITE_H/2) {
+    worm->phys_state.y = trap->top_edge + SPRITE_H/2;
+    dot_prod = dot(v, nvec_top);
+    collide = 1;
+  }
+
+  // Remember, its nose won't touch if it's backing up
   if(collide && dot_prod < 0 && worm->bio_state.muscle.left > 0 && worm->bio_state.muscle.right > 0) {
     return 1;
   }

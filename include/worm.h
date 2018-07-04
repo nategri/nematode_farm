@@ -35,6 +35,8 @@ uint8_t collide_with_wall(Worm* const worm);
 void worm_update_trapped(Worm* const, Trap* const);
 uint8_t collide_with_trap(Worm* const, Trap* const);
 
+void worm_draw(SDL_Renderer* const, Worm* const);
+
 void player_worm_init(Worm* const, SDL_Renderer* const);
 void player_worm_update(Worm* const, int, int);
 

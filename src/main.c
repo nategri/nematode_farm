@@ -134,8 +134,7 @@ int main(int argc, char* argv[]) {
     collide_with_wall(player_worm);
     collide_with_worm(player_worm, -1, worm_arr, num_worms);
     sprite_update(player_worm);
-    SDL_RenderCopyEx(rend, player_worm->curr_texture, NULL, &(player_worm->sprite_rect), player_worm->sprite.theta, NULL, SDL_FLIP_NONE);
-    SDL_RenderDrawRect(rend, &(player_worm->sprite_rect));
+    worm_draw(rend, player_worm);
 
     // Update worm AIs
     for(uint8_t n=0; n<num_worms; n++) {
@@ -169,8 +168,7 @@ int main(int argc, char* argv[]) {
 
       sprite_update(&worm_arr[n]);
 
-      SDL_RenderCopyEx(rend, worm_arr[n].curr_texture, NULL, &(worm_arr[n].sprite_rect), worm_arr[n].sprite.theta, NULL, SDL_FLIP_NONE);
-      SDL_RenderDrawRect(rend, &(worm_arr[n].sprite_rect));
+      worm_draw(rend, &worm_arr[n]);
 
       if(n==0) {
         motion_component_display_update(&motion_component_display, &worm_arr[n]);

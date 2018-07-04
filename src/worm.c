@@ -364,6 +364,11 @@ uint8_t collide_with_trap(Worm* const worm, Trap* const trap) {
   }
 }
 
+void worm_draw(SDL_Renderer* const rend, Worm* const worm) {
+  SDL_RenderCopyEx(rend, worm->curr_texture, NULL, &(worm->sprite_rect), worm->sprite.theta, NULL, SDL_FLIP_NONE);
+  SDL_RenderDrawRect(rend, &(worm->sprite_rect));
+}
+
 // Same as NPC worm except don't need some bio info
 // motion will occurr through direct muscle state manipulation
 void player_worm_init(Worm* const worm, SDL_Renderer* const rend) {

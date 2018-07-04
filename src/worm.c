@@ -1,10 +1,19 @@
 #include "worm.h"
 
+static SDL_Texture* load_texture(SDL_Renderer* rend, const char* image_file) {
+  SDL_Surface* surf;
+  surf = SDL_LoadBMP(image_file);
+  SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surf);
+  SDL_FreeSurface(surf);
+  
+  return tex;
+}
+
 static double dot(double const* a, double const* b) {
   return a[0]*b[0] + a[1]*b[1];
 }
 
-void worm_init(Worm* const worm) {
+void worm_init(Worm* const worm, SDL_Renderer* const rend, Color color) {
   uint32_t worm_x_init = (rand() % (int)(0.75*WINDOW_X)) + (int)(.125*WINDOW_X);
   uint32_t worm_y_init = (rand() % (int)(0.75*WINDOW_Y)) + (int)(.125*WINDOW_Y);
   double worm_theta_init = rand() % 360;
@@ -21,7 +30,21 @@ void worm_init(Worm* const worm) {
     worm->phys_state.theta
   };
   worm->trapped = 0;
-  worm->color = RED; // For now....
+  worm->color = color;
+
+  if(color == RED) {
+    worm->normal_texture = load_texture(rend, "./img/worm_red.bmp");
+    worm->nose_texture = load_texture(rend, "./img/worm_nose_red.bmp");
+  }
+  else if(color == BLUE) {
+    worm->normal_texture = load_texture(rend, "./img/worm_blue.bmp");
+    worm->nose_texture = load_texture(rend, "./img/worm_nose_blue.bmp");
+  }
+  else {
+    worm->normal_texture = load_texture(rend, "./img/worm.bmp");
+    worm->nose_texture = load_texture(rend, "./img/worm_nose.bmp");
+  }
+  worm->curr_texture = worm->normal_texture;
 
   // Burn in worm state
   int rand_int = (rand() % 1000) + 500;
@@ -63,6 +86,15 @@ void sprite_update(Worm* const worm) {
   worm->sprite_rect.y = worm->sprite.y - SPRITE_H/2;
   worm->sprite_rect.w = worm->sprite.w;
   worm->sprite_rect.h = worm->sprite.h;
+
+  if (worm->color != CYAN) {
+    if(worm->nose_touching) {
+      worm->curr_texture = worm->nose_texture;
+    }
+    else {
+      worm->curr_texture = worm->normal_texture;
+    }
+  }
 }
 
 void worm_update(Worm* const worm, const uint16_t* stim_neuron, int len_stim_neuron) {
@@ -334,7 +366,7 @@ uint8_t collide_with_trap(Worm* const worm, Trap* const trap) {
 
 // Same as NPC worm except don't need some bio info
 // motion will occurr through direct muscle state manipulation
-void player_worm_init(Worm* const worm) {
+void player_worm_init(Worm* const worm, SDL_Renderer* const rend) {
   uint32_t worm_x_init = (int)(0.5*WINDOW_X);
   uint32_t worm_y_init = (int)(0.5*WINDOW_Y);
   double worm_theta_init = -90.0;
@@ -348,6 +380,11 @@ void player_worm_init(Worm* const worm) {
     SPRITE_H,
     worm->phys_state.theta+90.0
   };
+  worm->color = CYAN;
+
+  worm->normal_texture = load_texture(rend, "./img/worm_mark.bmp");
+  worm->nose_texture = load_texture(rend, "./img/worm_mark_nose.bmp");
+  worm->curr_texture = worm->nose_texture;
 }
 
 void player_worm_update(Worm* const worm, int left, int right) {

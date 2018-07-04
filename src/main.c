@@ -19,15 +19,6 @@
 #include "motion_component_display.h"
 #include "muscle_display.h"
 
-SDL_Texture* load_texture(SDL_Renderer* rend, const char* image_file) {
-  SDL_Surface* surf;
-  surf = SDL_LoadBMP(image_file);
-  SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surf);
-  SDL_FreeSurface(surf);
-  
-  return tex;
-}
-
 int main(int argc, char* argv[]) {
   // Seed RNG
   srand(time(NULL));
@@ -39,30 +30,6 @@ int main(int argc, char* argv[]) {
   SDL_Init(SDL_INIT_VIDEO);
   SDL_CreateWindowAndRenderer(WINDOW_X, WINDOW_Y, 0, &win, &rend);
   SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
-
-  // Pull images for worm sprites and create textures
-  SDL_Texture* worm_tex;
-  SDL_Texture* worm_nose_tex;
-
-  SDL_Texture* worm_blue_tex;
-  SDL_Texture* worm_nose_blue_tex;
-
-  SDL_Texture* worm_red_tex;
-  SDL_Texture* worm_nose_red_tex;
-
-  SDL_Texture* player_worm_tex;
-  SDL_Texture* player_worm_nose_tex;
-
-  worm_tex = load_texture(rend, "./img/worm.bmp");
-  worm_nose_tex = load_texture(rend, "./img/worm_nose.bmp");
-
-  worm_red_tex = load_texture(rend, "./img/worm_red.bmp");
-  worm_nose_red_tex = load_texture(rend, "./img/worm_nose_red.bmp");
-  worm_blue_tex = load_texture(rend, "./img/worm_blue.bmp");
-  worm_nose_blue_tex = load_texture(rend, "./img/worm_nose_blue.bmp");
-
-  player_worm_tex = load_texture(rend, "./img/worm_mark.bmp");
-  player_worm_nose_tex = load_texture(rend, "./img/worm_mark_nose.bmp");
 
   // Texture for current state of the worm
   SDL_Texture* curr_tex;
@@ -77,14 +44,14 @@ int main(int argc, char* argv[]) {
 
   // Create player worm
   Worm* player_worm = malloc(sizeof(Worm));
-  player_worm_init(player_worm);
+  player_worm_init(player_worm, rend);
 
   // Create array of non-player AI worms
   static const uint8_t num_worms = 3;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
   for(uint8_t n=0; n < num_worms; n++) {
     // Initialize worms
-    worm_init(&worm_arr[n]);
+    worm_init(&worm_arr[n], rend, RED);
   }
 
   // Create a worm trap
@@ -164,11 +131,10 @@ int main(int argc, char* argv[]) {
     // Update player worm
     player_worm_update(player_worm, player_left_muscle, player_right_muscle);
     worm_phys_state_update(player_worm);
-    curr_tex = player_worm_nose_tex;
-    sprite_update(player_worm);
     collide_with_wall(player_worm);
     collide_with_worm(player_worm, -1, worm_arr, num_worms);
-    SDL_RenderCopyEx(rend, curr_tex, NULL, &(player_worm->sprite_rect), player_worm->sprite.theta, NULL, SDL_FLIP_NONE);
+    sprite_update(player_worm);
+    SDL_RenderCopyEx(rend, player_worm->curr_texture, NULL, &(player_worm->sprite_rect), player_worm->sprite.theta, NULL, SDL_FLIP_NONE);
     SDL_RenderDrawRect(rend, &(player_worm->sprite_rect));
 
     // Update worm AIs
@@ -183,33 +149,7 @@ int main(int argc, char* argv[]) {
       }
       worm_phys_state_update(&worm_arr[n]);
 
-      // Set what graphic to to use
-      if(worm_arr[n].color == RED) {
-        if(worm_arr[n].nose_touching) {
-          curr_tex = worm_nose_red_tex;
-        }
-        else {
-          curr_tex = worm_red_tex;
-        }
-      }
-      else if(worm_arr[n].color == BLUE) {
-        if(worm_arr[n].nose_touching) {
-          curr_tex = worm_nose_blue_tex;
-        }
-        else {
-          curr_tex = worm_blue_tex;
-        }
-      }
-      else {
-        if(worm_arr[n].nose_touching) {
-          curr_tex = worm_nose_tex;
-        }
-        else {
-          curr_tex = worm_tex;
-        }
-      }
-
-      sprite_update(&worm_arr[n]);
+      //sprite_update(&worm_arr[n]);
 
       worm_arr[n].nose_touching = 0;
 
@@ -229,7 +169,7 @@ int main(int argc, char* argv[]) {
 
       sprite_update(&worm_arr[n]);
 
-      SDL_RenderCopyEx(rend, curr_tex, NULL, &(worm_arr[n].sprite_rect), worm_arr[n].sprite.theta, NULL, SDL_FLIP_NONE);
+      SDL_RenderCopyEx(rend, worm_arr[n].curr_texture, NULL, &(worm_arr[n].sprite_rect), worm_arr[n].sprite.theta, NULL, SDL_FLIP_NONE);
       SDL_RenderDrawRect(rend, &(worm_arr[n].sprite_rect));
 
       if(n==0) {

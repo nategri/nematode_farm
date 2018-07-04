@@ -3,7 +3,8 @@
 
 typedef enum color {
   RED,
-  BLUE
+  BLUE,
+  CYAN 
 } Color;
 
 #endif

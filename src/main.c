@@ -19,6 +19,15 @@
 #include "motion_component_display.h"
 #include "muscle_display.h"
 
+SDL_Texture* load_texture(SDL_Renderer* rend, const char* image_file) {
+  SDL_Surface* surf;
+  surf = SDL_LoadBMP(image_file);
+  SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surf);
+  SDL_FreeSurface(surf);
+  
+  return tex;
+}
+
 int main(int argc, char* argv[]) {
   // Seed RNG
   srand(time(NULL));
@@ -32,27 +41,28 @@ int main(int argc, char* argv[]) {
   SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 
   // Pull images for worm sprites and create textures
-  SDL_Surface* surf;
   SDL_Texture* worm_tex;
   SDL_Texture* worm_nose_tex;
+
+  SDL_Texture* worm_blue_tex;
+  SDL_Texture* worm_nose_blue_tex;
+
+  SDL_Texture* worm_red_tex;
+  SDL_Texture* worm_nose_red_tex;
+
   SDL_Texture* player_worm_tex;
   SDL_Texture* player_worm_nose_tex;
 
-  surf = SDL_LoadBMP("./img/worm.bmp");
-  worm_tex = SDL_CreateTextureFromSurface(rend, surf);
-  SDL_FreeSurface(surf);
+  worm_tex = load_texture(rend, "./img/worm.bmp");
+  worm_nose_tex = load_texture(rend, "./img/worm_nose.bmp");
 
-  surf = SDL_LoadBMP("./img/worm_nose.bmp");
-  worm_nose_tex = SDL_CreateTextureFromSurface(rend, surf);
-  SDL_FreeSurface(surf);
+  worm_red_tex = load_texture(rend, "./img/worm_red.bmp");
+  worm_nose_red_tex = load_texture(rend, "./img/worm_nose_red.bmp");
+  worm_blue_tex = load_texture(rend, "./img/worm_blue.bmp");
+  worm_nose_blue_tex = load_texture(rend, "./img/worm_nose_blue.bmp");
 
-  surf = SDL_LoadBMP("./img/worm_mark.bmp");
-  player_worm_tex = SDL_CreateTextureFromSurface(rend, surf);
-  SDL_FreeSurface(surf);
-
-  surf = SDL_LoadBMP("./img/worm_mark_nose.bmp");
-  player_worm_nose_tex = SDL_CreateTextureFromSurface(rend, surf);
-  SDL_FreeSurface(surf);
+  player_worm_tex = load_texture(rend, "./img/worm_mark.bmp");
+  player_worm_nose_tex = load_texture(rend, "./img/worm_mark_nose.bmp");
 
   // Texture for current state of the worm
   SDL_Texture* curr_tex;
@@ -174,11 +184,29 @@ int main(int argc, char* argv[]) {
       worm_phys_state_update(&worm_arr[n]);
 
       // Set what graphic to to use
-      if(worm_arr[n].nose_touching) {
-        curr_tex = worm_nose_tex;
+      if(worm_arr[n].color == RED) {
+        if(worm_arr[n].nose_touching) {
+          curr_tex = worm_nose_red_tex;
+        }
+        else {
+          curr_tex = worm_red_tex;
+        }
+      }
+      else if(worm_arr[n].color == BLUE) {
+        if(worm_arr[n].nose_touching) {
+          curr_tex = worm_nose_blue_tex;
+        }
+        else {
+          curr_tex = worm_blue_tex;
+        }
       }
       else {
-        curr_tex = worm_tex;
+        if(worm_arr[n].nose_touching) {
+          curr_tex = worm_nose_tex;
+        }
+        else {
+          curr_tex = worm_tex;
+        }
       }
 
       sprite_update(&worm_arr[n]);

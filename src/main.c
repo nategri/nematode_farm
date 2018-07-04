@@ -47,16 +47,24 @@ int main(int argc, char* argv[]) {
   player_worm_init(player_worm, rend);
 
   // Create array of non-player AI worms
-  static const uint8_t num_worms = 3;
+  static const uint8_t num_worms = 20;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
   for(uint8_t n=0; n < num_worms; n++) {
+    double coin_toss = (double) rand() / (double) RAND_MAX;
     // Initialize worms
-    worm_init(&worm_arr[n], rend, RED);
+    if(coin_toss > 0.5) {
+      worm_init(&worm_arr[n], rend, RED);
+    }
+    else {
+      worm_init(&worm_arr[n], rend, BLUE);
+    }
   }
 
-  // Create a worm trap
+  // Create blue and red worm traps
   Trap* red_trap = malloc(sizeof(Trap));
-  trap_init(red_trap, RED, 320, 240, 120, 120);
+  trap_init(red_trap, RED, 200, 240, 120, 120);
+  Trap* blue_trap = malloc(sizeof(Trap));
+  trap_init(blue_trap, BLUE, 440, 240, 120, 120);
 
   // Begin graphical simulation
   SDL_Event sdl_event;
@@ -127,6 +135,7 @@ int main(int argc, char* argv[]) {
 
     // Draw traps
     trap_draw(rend, red_trap);
+    trap_draw(rend, blue_trap);
 
     // Update player worm
     player_worm_update(player_worm, player_left_muscle, player_right_muscle);
@@ -148,15 +157,14 @@ int main(int argc, char* argv[]) {
       }
       worm_phys_state_update(&worm_arr[n]);
 
-      //sprite_update(&worm_arr[n]);
-
       worm_arr[n].nose_touching = 0;
 
       worm_update_trapped(&worm_arr[n], red_trap);
-      if(worm_arr[n].trapped && (worm_arr[n].color == RED)) {
-        // Collide with trap
-        worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], red_trap);
-      }
+      worm_update_trapped(&worm_arr[n], blue_trap);
+
+      // Collide with blue and red traps
+      worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], red_trap);
+      worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], blue_trap);
 
       // Collide with walls
       worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_wall(&worm_arr[n]);

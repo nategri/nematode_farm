@@ -86,23 +86,23 @@ int main(int argc, char* argv[]) {
             break;
           }
 
-          static const uint16_t player_speed = 150;
+          static const uint16_t player_speed = 300;
 
           if(kb_state[SDL_SCANCODE_UP] && kb_state[SDL_SCANCODE_LEFT]) {
-            player_left_muscle = player_speed/2;
+            player_left_muscle = player_speed/1.5;
             player_right_muscle = player_speed;
           }
           else if(kb_state[SDL_SCANCODE_UP] && kb_state[SDL_SCANCODE_RIGHT]) {
             player_left_muscle = player_speed;
-            player_right_muscle = player_speed/2;
+            player_right_muscle = player_speed/1.5;
           }
           else if(kb_state[SDL_SCANCODE_DOWN] && kb_state[SDL_SCANCODE_LEFT]) {
-            player_left_muscle = -player_speed/2;
+            player_left_muscle = -player_speed/1.5;
             player_right_muscle = -player_speed;
           }
           else if(kb_state[SDL_SCANCODE_DOWN] && kb_state[SDL_SCANCODE_RIGHT]) {
             player_left_muscle = -player_speed;
-            player_right_muscle = -player_speed/2;
+            player_right_muscle = -player_speed/1.5;
           }
           else if(kb_state[SDL_SCANCODE_UP]) {
             player_left_muscle = player_speed;

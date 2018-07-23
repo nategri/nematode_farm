@@ -8,9 +8,11 @@
 #include <time.h>
 
 #include "SDL.h"
+#include "SDL_ttf.h"
 
 #include "colors.h"
 #include "display.h"
+#include "text_box.h"
 
 #include "behaviors.h"
 #include "worm.h"
@@ -29,10 +31,14 @@ int main(int argc, char* argv[]) {
 
   SDL_Init(SDL_INIT_VIDEO);
   SDL_CreateWindowAndRenderer(WINDOW_X, WINDOW_Y, 0, &win, &rend);
+
+  TTF_Init();
+
   SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 
-  // Texture for current state of the worm
-  SDL_Texture* curr_tex;
+  // Initialize text boxes
+  TextBox* text_box = malloc(sizeof(TextBox));
+  text_box_init(text_box, 320, 240, "./fonts/OpenSans-Regular.ttf", 16);
 
   // Create and initialize muscle display
   MuscleDisplay muscle_display;
@@ -133,6 +139,9 @@ int main(int argc, char* argv[]) {
     SDL_SetRenderDrawColor(rend, 128, 128, 128, 0);
     SDL_RenderClear(rend);
 
+    // Update text boxes
+    text_box_draw(rend, text_box, "nematode.farm");
+
     // Draw traps
     trap_draw(rend, red_trap);
     trap_draw(rend, blue_trap);
@@ -194,5 +203,6 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  TTF_Quit();
   SDL_Quit();
 }

@@ -16,7 +16,7 @@ typedef struct {
   int bottom_edge;
 } Trap;
 
-void trap_init(Trap* const, Color color, int16_t x_center, int16_t y_center, uint16_t w, uint16_t h);
+void trap_init(Trap* const, Color color, int16_t, int16_t, uint16_t, uint16_t);
 void trap_draw(SDL_Renderer*, Trap* const);
 
 #endif

@@ -5,6 +5,7 @@
 //
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 #include "SDL.h"
@@ -37,8 +38,8 @@ int main(int argc, char* argv[]) {
   SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 
   // Initialize text boxes
-  TextBox* text_box = malloc(sizeof(TextBox));
-  text_box_init(text_box, 320, 240, "./fonts/OpenSans-Regular.ttf", 16);
+  TextBox* timer_text = malloc(sizeof(TextBox));
+  text_box_init(timer_text, 320, 20, "./fonts/OpenSans-Regular.ttf", 32);
 
   // Create and initialize muscle display
   MuscleDisplay muscle_display;
@@ -81,8 +82,18 @@ int main(int argc, char* argv[]) {
   // Flag for visualization
   uint8_t show_vis = 0;
 
-  // Main animation loop
+  // Record time
+  uint32_t init_ticks = SDL_GetTicks();
+
+  uint8_t show_menu = 1;
+  uint8_t run_sim = 0;
+  uint8_t run_game = 0;
+
+  // Frame drawing loop
   for(int i=0; 1; i++) {
+
+    SDL_SetRenderDrawColor(rend, 128, 128, 128, 0);
+    SDL_RenderClear(rend);
 
     // Check keyboard for input
     if(SDL_PollEvent(&sdl_event)) {
@@ -136,12 +147,6 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    SDL_SetRenderDrawColor(rend, 128, 128, 128, 0);
-    SDL_RenderClear(rend);
-
-    // Update text boxes
-    text_box_draw(rend, text_box, "nematode.farm");
-
     // Draw traps
     trap_draw(rend, red_trap);
     trap_draw(rend, blue_trap);
@@ -191,6 +196,19 @@ int main(int argc, char* argv[]) {
         motion_component_display_update(&motion_component_display, &worm_arr[n]);
         muscle_display_update(&muscle_display, &worm_arr[n]);
       }
+    }
+
+    // Update text boxes
+    uint8_t time_limit = 200;
+    uint32_t elapsed_time = ((SDL_GetTicks() - init_ticks) / 1000);
+    uint32_t countdown_value = time_limit - elapsed_time;
+    if(elapsed_time <= time_limit) {
+      char countdown_string[4];
+      sprintf(countdown_string, "%d", countdown_value);
+      text_box_draw(rend, timer_text, countdown_string);
+    }
+    else {
+      break;
     }
 
     if(show_vis) {

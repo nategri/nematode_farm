@@ -38,6 +38,18 @@ int main(int argc, char* argv[]) {
   SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 
   // Initialize text boxes
+  TextBox* primary_text = malloc(sizeof(TextBox));
+  text_box_init(primary_text, 320, 100, "./fonts/OpenSans-Regular.ttf", 48);
+
+  TextBox* secondary_text = malloc(sizeof(TextBox));
+  text_box_init(secondary_text, 320, 145, "./fonts/OpenSans-Regular.ttf", 24);
+
+  TextBox* tertiary_text = malloc(sizeof(TextBox));
+  text_box_init(tertiary_text, 320, 380, "./fonts/OpenSans-Regular.ttf", 24);
+
+  TextBox* hint_text = malloc(sizeof(TextBox));
+  text_box_init(hint_text, 140, 462, "./fonts/OpenSans-Regular.ttf", 14);
+
   TextBox* timer_text = malloc(sizeof(TextBox));
   text_box_init(timer_text, 320, 20, "./fonts/OpenSans-Regular.ttf", 32);
 
@@ -82,12 +94,15 @@ int main(int argc, char* argv[]) {
   // Flag for visualization
   uint8_t show_vis = 0;
 
-  // Record time
-  uint32_t init_ticks = SDL_GetTicks();
+  // Holds start time of gameplay
+  uint32_t init_ticks;
 
-  uint8_t show_menu = 1;
-  uint8_t run_sim = 0;
-  uint8_t run_game = 0;
+  // Declare program states and initialize current state
+  typedef enum {INIT, GAME_PLAY, GAME_OVER, GAME_WIN} program_state;
+  program_state current_state = INIT;
+
+  // Holds countdown value during gameplay
+  uint32_t countdown_value;
 
   // Frame drawing loop
   for(int i=0; 1; i++) {
@@ -101,6 +116,29 @@ int main(int argc, char* argv[]) {
           const uint8_t* kb_state = SDL_GetKeyboardState(NULL);
           if(kb_state[SDL_SCANCODE_ESCAPE]) {
             break;
+          }
+
+          if(kb_state[SDL_SCANCODE_RETURN]) {
+            if( (current_state == INIT) || (current_state == GAME_WIN) || (current_state == GAME_OVER)) {
+              current_state = GAME_PLAY;
+
+              //
+              // YO REFACTOR THIS INTO FUNCTION THO
+              //
+              for(uint8_t n=0; n < num_worms; n++) {
+                double coin_toss = (double) rand() / (double) RAND_MAX;
+                // Initialize worms
+                if(coin_toss > 0.5) {
+                  worm_init(&worm_arr[n], rend, RED);
+                }
+                else {
+                  worm_init(&worm_arr[n], rend, BLUE);
+                }
+              }
+
+              // Record start time of gameplay
+              init_ticks = SDL_GetTicks();
+            }
           }
 
           static const uint16_t player_speed = 300;
@@ -148,16 +186,20 @@ int main(int argc, char* argv[]) {
     }
 
     // Draw traps
-    trap_draw(rend, red_trap);
-    trap_draw(rend, blue_trap);
+    if(current_state == GAME_PLAY) {
+      trap_draw(rend, red_trap);
+      trap_draw(rend, blue_trap);
+    }
 
     // Update player worm
-    player_worm_update(player_worm, player_left_muscle, player_right_muscle);
-    worm_phys_state_update(player_worm);
-    collide_with_wall(player_worm);
-    collide_with_worm(player_worm, -1, worm_arr, num_worms);
-    sprite_update(player_worm);
-    worm_draw(rend, player_worm);
+    if(current_state == GAME_PLAY) {
+      player_worm_update(player_worm, player_left_muscle, player_right_muscle);
+      worm_phys_state_update(player_worm);
+      collide_with_wall(player_worm);
+      collide_with_worm(player_worm, -1, worm_arr, num_worms);
+      sprite_update(player_worm);
+      worm_draw(rend, player_worm);
+    }
 
     // Update worm AIs
     for(uint8_t n=0; n<num_worms; n++) {
@@ -177,16 +219,21 @@ int main(int argc, char* argv[]) {
       worm_update_trapped(&worm_arr[n], blue_trap);
 
       // Collide with blue and red traps
-      worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], red_trap);
-      worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], blue_trap);
+      if(current_state == GAME_PLAY) {
+        worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], red_trap);
+        worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], blue_trap);
+      }
 
       // Collide with walls
       worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_wall(&worm_arr[n]);
-      // Collide with other AI worms
-      worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_worm(&worm_arr[n], n, worm_arr, num_worms);
-      // Collide with player worm
-      Worm player_worm_arr[] = {*player_worm};
-      worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_worm(&worm_arr[n], -1, player_worm_arr, 1);
+
+      if (current_state != INIT) {
+        // Collide with other AI worms
+        worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_worm(&worm_arr[n], n, worm_arr, num_worms);
+        // Collide with player worm
+        Worm player_worm_arr[] = {*player_worm};
+        worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_worm(&worm_arr[n], -1, player_worm_arr, 1);
+      }
 
       sprite_update(&worm_arr[n]);
 
@@ -195,20 +242,59 @@ int main(int argc, char* argv[]) {
       if(n==0) {
         motion_component_display_update(&motion_component_display, &worm_arr[n]);
         muscle_display_update(&muscle_display, &worm_arr[n]);
+
+        if (current_state == INIT) {
+          break;
+        }
       }
     }
 
-    // Update text boxes
-    uint8_t time_limit = 200;
-    uint32_t elapsed_time = ((SDL_GetTicks() - init_ticks) / 1000);
-    uint32_t countdown_value = time_limit - elapsed_time;
-    if(elapsed_time <= time_limit) {
-      char countdown_string[4];
-      sprintf(countdown_string, "%d", countdown_value);
-      text_box_draw(rend, timer_text, countdown_string);
+    // Update text boxes and check if game has finished
+    if(current_state == INIT) {
+      //text_box_draw(rend, primary_text, "n e m a t o d e . f a r m");
+      text_box_draw(rend, primary_text, "nematode.farm");
+
+      if(!show_vis) {
+        text_box_draw(rend, secondary_text, "Press [Enter] to Play");
+        text_box_draw(rend, hint_text, "Press [V] to toggle muscle visualization");
+      }
     }
-    else {
-      break;
+    else if(current_state == GAME_PLAY) {
+      uint8_t time_limit = 200;
+      uint32_t elapsed_time = ((SDL_GetTicks() - init_ticks) / 1000);
+      countdown_value = time_limit - elapsed_time;
+      if(elapsed_time <= time_limit) {
+        char countdown_string[4];
+        sprintf(countdown_string, "%d", countdown_value);
+        text_box_draw(rend, timer_text, countdown_string);
+      }
+      // Game over, man
+      else {
+        current_state = GAME_OVER;
+      }
+
+      // Check if you've won
+      uint8_t all_trapped = 1;
+      for(uint8_t n; n<num_worms; n++) {
+        if(!worm_arr[n].trapped) {
+          all_trapped = 0;
+          break;
+        }
+      }
+      if(all_trapped) {
+        current_state = GAME_WIN;
+      }
+    }
+    else if(current_state == GAME_WIN) {
+      char score_message[10];
+      sprintf(score_message, "Score: %d", countdown_value);
+      text_box_draw(rend, primary_text, "You Put the 'Todes Away :D");
+      text_box_draw(rend, secondary_text, score_message);
+      text_box_draw(rend, tertiary_text, "Press [Enter] to Play Again");
+    }
+    else if(current_state == GAME_OVER) {
+      text_box_draw(rend, primary_text, "Try Again :(");
+      text_box_draw(rend, secondary_text, "Press [Enter] to Play Again");
     }
 
     if(show_vis) {

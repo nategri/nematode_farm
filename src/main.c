@@ -22,6 +22,19 @@
 #include "motion_component_display.h"
 #include "muscle_display.h"
 
+void non_player_worm_array_init(SDL_Renderer* renderer, Worm* arr, uint8_t num) {
+  for(uint8_t n=0; n < num; n++) {
+    double coin_toss = (double) rand() / (double) RAND_MAX;
+    // Initialize worms
+    if(coin_toss > 0.5) {
+      worm_init(&arr[n], renderer, RED);
+    }
+    else {
+      worm_init(&arr[n], renderer, BLUE);
+    }
+  }
+}
+
 int main(int argc, char* argv[]) {
   // Seed RNG
   srand(time(NULL));
@@ -63,21 +76,11 @@ int main(int argc, char* argv[]) {
 
   // Create player worm
   Worm* player_worm = malloc(sizeof(Worm));
-  player_worm_init(player_worm, rend);
 
   // Create array of non-player AI worms
-  static const uint8_t num_worms = 2;
+  static const uint8_t num_worms = 20;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
-  for(uint8_t n=0; n < num_worms; n++) {
-    double coin_toss = (double) rand() / (double) RAND_MAX;
-    // Initialize worms
-    if(coin_toss > 0.5) {
-      worm_init(&worm_arr[n], rend, RED);
-    }
-    else {
-      worm_init(&worm_arr[n], rend, BLUE);
-    }
-  }
+  non_player_worm_array_init(rend, worm_arr, num_worms);
 
   // Create blue and red worm traps
   Trap* red_trap = malloc(sizeof(Trap));
@@ -115,28 +118,18 @@ int main(int argc, char* argv[]) {
       if(sdl_event.type == SDL_KEYDOWN || sdl_event.type == SDL_KEYUP) {
           const uint8_t* kb_state = SDL_GetKeyboardState(NULL);
           if(kb_state[SDL_SCANCODE_ESCAPE]) {
-            break;
+            current_state = INIT;
+            //break;
           }
 
           if(kb_state[SDL_SCANCODE_RETURN]) {
             if( (current_state == INIT) || (current_state == GAME_WIN) || (current_state == GAME_OVER)) {
               current_state = GAME_PLAY;
 
-              //
-              // YO REFACTOR THIS INTO FUNCTION THO
-              //
-              for(uint8_t n=0; n < num_worms; n++) {
-                double coin_toss = (double) rand() / (double) RAND_MAX;
-                // Initialize worms
-                if(coin_toss > 0.5) {
-                  worm_init(&worm_arr[n], rend, RED);
-                }
-                else {
-                  worm_init(&worm_arr[n], rend, BLUE);
-                }
-              }
+              // Init AI worms
+              non_player_worm_array_init(rend, worm_arr, num_worms);
 
-              // Re-init player worm
+              // Init player worm
               player_worm_init(player_worm, rend);
 
               // Record start time of gameplay
@@ -263,7 +256,7 @@ int main(int argc, char* argv[]) {
       }
     }
     else if(current_state == GAME_PLAY) {
-      uint8_t time_limit = 30;
+      uint8_t time_limit = 200;
       uint32_t elapsed_time = ((SDL_GetTicks() - init_ticks) / 1000);
       countdown_value = time_limit - elapsed_time;
       if(elapsed_time <= time_limit) {
@@ -300,7 +293,7 @@ int main(int argc, char* argv[]) {
       text_box_draw(rend, secondary_text, "Press [Enter] to Play Again");
     }
 
-    if(show_vis) {
+    if(show_vis && (current_state == INIT)) {
       motion_component_display_draw(rend, &motion_component_display);
       muscle_display_draw(rend, &muscle_display);
     }

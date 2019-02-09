@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
   player_worm_init(player_worm, rend);
 
   // Create array of non-player AI worms
-  static const uint8_t num_worms = 20;
+  static const uint8_t num_worms = 2;
   Worm* worm_arr = malloc(num_worms*sizeof(Worm));
   for(uint8_t n=0; n < num_worms; n++) {
     double coin_toss = (double) rand() / (double) RAND_MAX;
@@ -136,6 +136,9 @@ int main(int argc, char* argv[]) {
                 }
               }
 
+              // Re-init player worm
+              player_worm_init(player_worm, rend);
+
               // Record start time of gameplay
               init_ticks = SDL_GetTicks();
             }
@@ -186,7 +189,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Draw traps
-    if(current_state == GAME_PLAY) {
+    if((current_state == GAME_PLAY) || (current_state == GAME_WIN) || (current_state == GAME_OVER)) {
       trap_draw(rend, red_trap);
       trap_draw(rend, blue_trap);
     }
@@ -219,7 +222,7 @@ int main(int argc, char* argv[]) {
       worm_update_trapped(&worm_arr[n], blue_trap);
 
       // Collide with blue and red traps
-      if(current_state == GAME_PLAY) {
+      if((current_state == GAME_PLAY) || (current_state == GAME_WIN) || (current_state == GAME_OVER)) {
         worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], red_trap);
         worm_arr[n].nose_touching = worm_arr[n].nose_touching || collide_with_trap(&worm_arr[n], blue_trap);
       }
@@ -260,7 +263,7 @@ int main(int argc, char* argv[]) {
       }
     }
     else if(current_state == GAME_PLAY) {
-      uint8_t time_limit = 200;
+      uint8_t time_limit = 30;
       uint32_t elapsed_time = ((SDL_GetTicks() - init_ticks) / 1000);
       countdown_value = time_limit - elapsed_time;
       if(elapsed_time <= time_limit) {
@@ -275,7 +278,7 @@ int main(int argc, char* argv[]) {
 
       // Check if you've won
       uint8_t all_trapped = 1;
-      for(uint8_t n; n<num_worms; n++) {
+      for(uint8_t n = 0; n<num_worms; n++) {
         if(!worm_arr[n].trapped) {
           all_trapped = 0;
           break;
@@ -286,7 +289,7 @@ int main(int argc, char* argv[]) {
       }
     }
     else if(current_state == GAME_WIN) {
-      char score_message[10];
+      char score_message[11];
       sprintf(score_message, "Score: %d", countdown_value);
       text_box_draw(rend, primary_text, "You Put the 'Todes Away :D");
       text_box_draw(rend, secondary_text, score_message);

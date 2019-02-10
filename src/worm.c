@@ -200,8 +200,8 @@ void worm_update(Worm* const worm, const uint16_t* stim_neuron, int len_stim_neu
     right_total *= -1;
   }
 
-  worm->bio_state.muscle.left = left_total / 0.5;
-  worm->bio_state.muscle.right = right_total / 0.5;
+  worm->bio_state.muscle.left = left_total / 0.1;
+  worm->bio_state.muscle.right = right_total / 0.1;
 
 }
 

@@ -1,8 +1,8 @@
-gcc -g -Wfatal-errors src/main.c -o nematode_farm \
-  -I /usr/local/Cellar/sdl2/2.0.8/include/SDL2 \
-  -I /usr/local/Cellar/sdl2_ttf/2.0.14/include/SDL2/ \
-  -I ./include \
-  -I ./nanotode/include \
+emcc --embed-file fonts \
+  --embed-file img \
+  src/main.c -o index.js \
+  -I./include \
+  -I./nanotode/include \
   nanotode/src/*.c \
   src/worm.c \
   src/behaviors.c \
@@ -12,6 +12,6 @@ gcc -g -Wfatal-errors src/main.c -o nematode_farm \
   src/text_box.c \
   -L /usr/local/Cellar/sdl2/2.0.8/lib \
   -L /usr/local/Cellar/sdl2_ttf/2.0.14/lib \
-  -l SDL2-2.0.0 \
-  -l SDL2_ttf
-
+  -s WASM=1 \
+  -s USE_SDL=2 \
+  -s USE_SDL_TTF=2 \

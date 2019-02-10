@@ -4,6 +4,8 @@
 #define CHEMOTAXIS_LEN 8
 #define NOSE_TOUCH_LEN 8
 
+#include <stdint.h>
+
 extern const uint16_t NOSE_TOUCH[];
 extern const uint16_t CHEMOTAXIS[];
 

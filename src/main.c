@@ -24,6 +24,8 @@
 #include "motion_component_display.h"
 #include "muscle_display.h"
 
+typedef enum {INIT, GAME_PLAY, GAME_OVER, GAME_WIN} program_state;
+
 typedef struct {
   SDL_Window* win;
   SDL_Renderer* rend;
@@ -40,7 +42,7 @@ typedef struct {
 
   Worm* player_worm;
 
-  static const uint8_t num_worms;
+  uint8_t num_worms;
 
   Worm* worm_arr;
 
@@ -59,7 +61,7 @@ typedef struct {
   uint32_t init_ticks;
 
   // Declare program states 
-  typedef enum {INIT, GAME_PLAY, GAME_OVER, GAME_WIN} program_state;
+  program_state current_state;
 
   // Holds countdown value during gameplay
   uint32_t countdown_value;
@@ -67,6 +69,19 @@ typedef struct {
   uint32_t loop_tick;
 
 } LoopContext;
+
+void non_player_worm_array_init(SDL_Renderer* renderer, Worm* arr, uint8_t num) {
+  for(uint8_t n=0; n < num; n++) {
+    double coin_toss = (double) rand() / (double) RAND_MAX;
+    // Initialize worms
+    if(coin_toss > 0.5) {
+      worm_init(&arr[n], renderer, RED);
+    }
+    else {
+      worm_init(&arr[n], renderer, BLUE);
+    }
+  }
+}
 
 void init_loop_context(LoopContext* ctx) {
   // Initialize text boxes
@@ -96,7 +111,7 @@ void init_loop_context(LoopContext* ctx) {
 
   // Create array of non-player AI worms
   ctx->num_worms = 20;
-  ctx->worm_arr = malloc(num_worms*sizeof(Worm));
+  ctx->worm_arr = malloc(ctx->num_worms*sizeof(Worm));
   non_player_worm_array_init(ctx->rend, ctx->worm_arr, ctx->num_worms);
 
   // Create blue and red worm traps
@@ -116,21 +131,8 @@ void init_loop_context(LoopContext* ctx) {
   ctx->loop_tick = 0;
 }
 
-void non_player_worm_array_init(SDL_Renderer* renderer, Worm* arr, uint8_t num) {
-  for(uint8_t n=0; n < num; n++) {
-    double coin_toss = (double) rand() / (double) RAND_MAX;
-    // Initialize worms
-    if(coin_toss > 0.5) {
-      worm_init(&arr[n], renderer, RED);
-    }
-    else {
-      worm_init(&arr[n], renderer, BLUE);
-    }
-  }
-}
-
 void loop(void *arg) {
-  LoopContext* ctx = (LoopContext*) arg
+  LoopContext* ctx = (LoopContext*) arg;
 
   // Frame drawing loop
   SDL_SetRenderDrawColor(ctx->rend, 128, 128, 128, 0);
@@ -159,7 +161,7 @@ void loop(void *arg) {
           }
         }
 
-        static const uint16_t player_speed = 300;
+        static const uint16_t player_speed = 1500;
 
         if(kb_state[SDL_SCANCODE_UP] && kb_state[SDL_SCANCODE_LEFT]) {
           ctx->player_left_muscle = player_speed/1.5;
@@ -221,7 +223,7 @@ void loop(void *arg) {
 
   // Update worm AIs
   for(uint8_t n=0; n<ctx->num_worms; n++) {
-    if(ctx->loop_tick % 120 == 0) {
+    if(ctx->loop_tick % (120/5) == 0) {
       if(ctx->worm_arr[n].nose_touching) {
         worm_update(&ctx->worm_arr[n], NOSE_TOUCH, NOSE_TOUCH_LEN);
       }
@@ -269,7 +271,6 @@ void loop(void *arg) {
 
   // Update text boxes and check if game has finished
   if(ctx->current_state == INIT) {
-    //text_box_draw(rend, primary_text, "n e m a t o d e . f a r m");
     text_box_draw(ctx->rend, ctx->primary_text, "nematode.farm");
 
     if(!ctx->show_vis) {
@@ -279,7 +280,7 @@ void loop(void *arg) {
   }
   else if(ctx->current_state == GAME_PLAY) {
     uint8_t time_limit = 200;
-    uint32_t elapsed_time = ((SDL_GetTicks() - init_ticks) / 1000);
+    uint32_t elapsed_time = ((SDL_GetTicks() - ctx->init_ticks) / 1000);
     ctx->countdown_value = time_limit - elapsed_time;
     if(elapsed_time <= time_limit) {
       char countdown_string[4];
@@ -320,12 +321,20 @@ void loop(void *arg) {
     muscle_display_draw(ctx->rend, &ctx->muscle_display);
   }
 
-  if(i > 1000) {
+  if(ctx->loop_tick > 1000) {
     SDL_RenderPresent(ctx->rend);
   }
 
   ctx->loop_tick++;
 }
+
+/*
+void emscripten_set_main_loop_arg(void (*lp)(void*), void* arg, int skip_one, int skip_two) {
+  while(1) {
+    lp(arg);
+  }
+}
+*/
 
 int main(int argc, char* argv[]) {
   // Seed RNG
@@ -333,7 +342,6 @@ int main(int argc, char* argv[]) {
 
   // Create loop context
   LoopContext loop_context;
-  init_loop_context(*loop_context);
 
   // Initialize graphics window
   SDL_Init(SDL_INIT_VIDEO);
@@ -343,7 +351,9 @@ int main(int argc, char* argv[]) {
 
   SDL_SetRenderDrawBlendMode(loop_context.rend, SDL_BLENDMODE_BLEND);
 
-  const int default_fps = -1;
+  init_loop_context(&loop_context);
+
+  const int default_fps = 0;
   const int loop_forever = 1;
 
   emscripten_set_main_loop_arg(loop, &loop_context, default_fps, loop_forever);

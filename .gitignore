@@ -1,4 +1,2 @@
-*.js
-*.wasm
 .scratch
 .DS_Store

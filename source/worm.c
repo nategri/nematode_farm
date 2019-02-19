@@ -20,7 +20,7 @@ void worm_init(Worm* const worm, SDL_Renderer* const rend, Color color) {
   worm->phys_state = (WormPhysicalState) {worm_x_init, worm_y_init, 0.0, 0.0, worm_theta_init};
   ctm_init(&worm->bio_state.connectome);
   worm->bio_state.muscle = (MuscleState) {0, 0, 0, 0, 0};
-  worm->bio_state.motor_ab_fire_avg = 5.25;
+  worm->bio_state.motor_a_neuron_fire_avg = 16.0;
   worm->nose_touching = 0;
   worm->sprite = (Sprite) {
     (int)worm->phys_state.x,
@@ -177,25 +177,26 @@ void worm_update(Worm* const worm, const uint16_t* stim_neuron, int len_stim_neu
   // Log A and B type motor neuron activity
   double motor_neuron_sum = 0;
 
+  /*
   for(int i = 0; i < MOTOR_B; i++) {
     uint16_t id = READ_WORD(motor_neuron_b, i);
     motor_neuron_sum += ctm_get_discharge(ctm, id);
-    //printf("%d\n", ctm_get_discharge(ctm, id));
   }
+  */
 
   for(int i = 0; i < MOTOR_A; i++) {
     uint16_t id = READ_WORD(motor_neuron_a, i);
     motor_neuron_sum += ctm_get_discharge(ctm, id);
-    //printf("%d\n", ctm_get_discharge(ctm, id));
   }
 
-  const double motor_total = MOTOR_A + MOTOR_B;
+  //const double motor_total = MOTOR_A + MOTOR_B;
+  const double motor_total = MOTOR_A;
+  const int avg_window = 15;
+  double motor_neuron_percent = 100.0 * motor_neuron_sum / motor_total;
 
-  worm->bio_state.motor_ab_fire_avg = (motor_neuron_sum + (motor_total*worm->bio_state.motor_ab_fire_avg))/(motor_total + 1.0);
+  worm->bio_state.motor_a_neuron_fire_avg = (motor_neuron_percent + (avg_window*worm->bio_state.motor_a_neuron_fire_avg))/(avg_window + 1.0);
 
-  if(worm->bio_state.motor_ab_fire_avg > 5.5) { // Magic number read off from c_matoduino simulation
-    //printf("%f\n", worm->bio_state.motor_ab_fire_avg);
-    //printf("reverse");
+  if(worm->bio_state.motor_a_neuron_fire_avg > 19.0) { // Magic number read off from c_matoduino simulation
     left_total *= -1;
     right_total *= -1;
   }

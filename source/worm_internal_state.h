@@ -32,7 +32,7 @@ typedef struct {
 typedef struct {
   Connectome connectome;
   MuscleState muscle;
-  double motor_ab_fire_avg;
+  double motor_a_neuron_fire_avg; // Percentage of A-type motor neurons firing
 } WormBioState;
 
 #endif

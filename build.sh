@@ -1,6 +1,6 @@
 emcc --embed-file fonts \
   --embed-file img \
-  source/main.c -o index.js \
+  source/main.c -o nematodefarm.js \
   -I./source \
   -I./nanotode/source \
   nanotode/source/*.c \

@@ -30,7 +30,7 @@ If you'd like more details on how I interpret the signals from the simulated ner
 
 The title screen of nematode.farm gives you the option to press [V] to display a readout of the muscle/motion state of the worm on that screen.
 
-<p align="center"><img width=500 src="/images/vis_key.jpeg"></p>
+<p align="center"><img width=800 src="/images/vis_key.jpeg"></p>
 <p align="center"><b>Figure 1.</b><br><i>The visualization shows the state of each muscle in the worm, as well as the left and right components contributing to its motion, which are entirely analogous to that of the nematoduino 2-wheeled robot</i>.</p>
 
 ## Closely Related Projects by This Author

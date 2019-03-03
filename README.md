@@ -1,6 +1,6 @@
 ## Description
 
-Nematode.farm is a simple WASM and SDL2 based game utilizing simulations of the
+[Nematode.farm](https://nematode.farm) is a simple WASM and SDL2 based game utilizing simulations of the
 C. elegans nematode as the 'opponent' artificial intelligence.
 
 This project started as a visualizer/development tool to complement my work on the [nanotode](https://github.com/nategri/nanotode) C. elegans framework and the [nematoduino](https://github.com/nategri/nematoduino) robot (in fact the worms in nematode.farm follow almost exactly the same motion logic as the robot).

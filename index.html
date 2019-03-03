@@ -6,15 +6,23 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   </head>
 
-  <body>
-    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+  <body style="background-color: #cccccc;">
+    <div style="width: 50%; margin: 40px auto 0px auto;">
+      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
-    <script type='text/javascript'>
-      var Module = {
-        canvas: (function() { return document.getElementById('canvas'); })()
-      };
-    </script>
+      <script type='text/javascript'>
+        var Module = {
+          canvas: (function() { return document.getElementById('canvas'); })()
+        };
+      </script>
 
-    <script src="nematodefarm.js"></script>
+      <script src="nematodefarm.js"></script>
+    </div>
+    <div style="width: 620px; margin: 5px auto;">
+      Curious about nematode.farm? <a href="https://github.com/nategri/nematode_farm">Check out the GitHub README</a>
+      <br>
+      Want to build a nematode robot? <a
+      href="https://github.com/nategri/nematode_farm">Check out the hackster.io write-up</a>
+    </div>
   </body>
 </html>
